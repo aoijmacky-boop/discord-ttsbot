@@ -3,7 +3,23 @@ import asyncio
 import os
 from gtts import gTTS
 import imageio_ffmpeg
+import discord.opus
+import ctypes.util
 
+# ===== Opus自動ロード =====
+opus_path = ctypes.util.find_library("opus")
+print("Opus path:", opus_path)
+
+if opus_path:
+    try:
+        discord.opus.load_opus(opus_path)
+        print("Opusロード成功")
+    except Exception as e:
+        print("Opusロード失敗:", e)
+else:
+    print("Opusが見つかりません")
+
+# ===== 基本設定 =====
 TOKEN = os.getenv("TOKEN")
 
 intents = discord.Intents.default()
@@ -17,10 +33,12 @@ TARGET_CHANNEL_NAME = "🔊tts"
 ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
 print("FFmpeg path:", ffmpeg_path)
 
+# ===== 起動 =====
 @client.event
 async def on_ready():
     print(f"ログインしました: {client.user}")
 
+# ===== VC入退出 =====
 @client.event
 async def on_voice_state_update(member, before, after):
     vc = discord.utils.get(client.voice_clients, guild=member.guild)
@@ -44,6 +62,7 @@ async def on_voice_state_update(member, before, after):
             await vc.disconnect()
             print("VCから退出しました")
 
+# ===== 読み上げ =====
 @client.event
 async def on_message(message):
     print("メッセージ検知:", message.content)
@@ -86,4 +105,5 @@ async def on_message(message):
     except Exception as e:
         print("読み上げエラー:", repr(e))
 
+# ===== 実行 =====
 client.run(TOKEN)
