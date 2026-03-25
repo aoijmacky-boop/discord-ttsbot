@@ -78,11 +78,9 @@ async def on_message(message):
         while vc.is_playing():
             await asyncio.sleep(0.5)
 
-        audio = discord.FFmpegPCMAudio(
+       audio = discord.FFmpegOpusAudio(
             "voice.mp3",
-            executable=ffmpeg_path,
-            before_options="-nostdin",
-            options="-vn"
+            executable=ffmpeg_path
         )
 
         def after_playing(error):
