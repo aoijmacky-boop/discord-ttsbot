@@ -1,7 +1,7 @@
 import shutil
-print("FFmpeg:", shutil.which("ffmpeg"))import discord
-import os
-print("ファイル存在:", os.path.exists("voice.mp3"))
+print("FFmpeg:", shutil.which("ffmpeg"))
+
+import discord
 import asyncio
 import os
 from gtts import gTTS
