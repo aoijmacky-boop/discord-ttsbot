@@ -1,4 +1,7 @@
-import discord
+import shutil
+print("FFmpeg:", shutil.which("ffmpeg"))import discord
+import os
+print("ファイル存在:", os.path.exists("voice.mp3"))
 import asyncio
 import os
 from gtts import gTTS
@@ -60,7 +63,16 @@ async def on_message(message):
         while vc.is_playing():
             await asyncio.sleep(0.5)
 
-        vc.play(discord.FFmpegPCMAudio("voice.mp3"))
+      audio = discord.FFmpegPCMAudio("voice.mp3", executable="ffmpeg")
+
+def after_playing(error):
+    if error:
+        print("再生エラー:", error)
+    else:
+        print("再生完了")
+
+vc.play(audio, after=after_playing)
+print("再生開始")
 
     except Exception as e:
         print(f"読み上げエラー: {e}")
