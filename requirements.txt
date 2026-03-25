@@ -1,4 +1,2 @@
 discord.py
-gTTS
-langdetect
-PyNaCl
+PyNaCl==1.5.0
