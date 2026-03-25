@@ -35,6 +35,8 @@ async def on_voice_state_update(member, before, after):
 
 @client.event
 async def on_message(message):
+    print("メッセージ検知:", message.content)
+
     if message.channel.name != TARGET_CHANNEL_NAME:
         return
 
@@ -50,7 +52,9 @@ async def on_message(message):
     if text == "":
         return
 
-    # 🌏 言語判定（ざっくり）
+    print("読み上げ開始:", text)
+
+    # 言語判定
     lang = "ja"
     if any('\uac00' <= c <= '\ud7a3' for c in text):
         lang = "ko"
@@ -59,23 +63,25 @@ async def on_message(message):
         tts = gTTS(text=text, lang=lang)
         tts.save("voice.mp3")
 
-        # 再生中なら待つ
+        import os
+        print("ファイル存在:", os.path.exists("voice.mp3"))
+
         while vc.is_playing():
             await asyncio.sleep(0.5)
 
-      audio = discord.FFmpegPCMAudio("voice.mp3", executable="ffmpeg")
+        audio = discord.FFmpegPCMAudio("voice.mp3", executable="ffmpeg")
 
-def after_playing(error):
-    if error:
-        print("再生エラー:", error)
-    else:
-        print("再生完了")
+        def after_playing(error):
+            if error:
+                print("再生エラー:", error)
+            else:
+                print("再生完了")
 
-vc.play(audio, after=after_playing)
-print("再生開始")
+        vc.play(audio, after=after_playing)
+        print("再生開始")
 
     except Exception as e:
-        print(f"読み上げエラー: {e}")
+        print("読み上げエラー:", e)
 
 @client.event
 async def on_voice_state_update(member, before, after):
