@@ -4,9 +4,6 @@ import os
 from gtts import gTTS
 import imageio_ffmpeg
 
-import discord.opus
-discord.opus.load_opus("libopus.so.0")
-
 TOKEN = os.getenv("TOKEN")
 
 intents = discord.Intents.default()
