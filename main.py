@@ -93,4 +93,8 @@ async def on_voice_state_update(member, before, after):
             await vc.disconnect()
             print("VCから退出しました")
 
+@client.event
+async def on_message(message):
+    print("メッセージ検知:", message.content)
+
 client.run(TOKEN)
