@@ -1,37 +1,68 @@
 import discord
-import os
 import asyncio
+import os
+from gtts import gTTS
 
-TOKEN = os.environ["TOKEN"]
+TOKEN = os.getenv("TOKEN")
 
 intents = discord.Intents.default()
+intents.message_content = True
 intents.voice_states = True
 
 client = discord.Client(intents=intents)
 
-voice_clients = {}
+TARGET_CHANNEL_NAME = "🔊tts"
 
 @client.event
 async def on_ready():
     print(f"ログインしました: {client.user}")
-    client.loop.create_task(check_voice_loop())
 
-async def check_voice_loop():
-    await client.wait_until_ready()
-    while not client.is_closed():
-        for guild in client.guilds:
-            for vc in guild.voice_channels:
-                # Bot以外の人がいるかチェック
-                human_members = [m for m in vc.members if not m.bot]
+@client.event
+async def on_voice_state_update(member, before, after):
+    # 誰かがVCに入ったらbotも入る
+    if after.channel is not None and before.channel is None:
+        vc = discord.utils.get(client.voice_clients, guild=member.guild)
 
-                if len(human_members) > 0:
-                    if guild.id not in voice_clients:
-                        try:
-                            voice_client = await vc.connect()
-                            voice_clients[guild.id] = voice_client
-                            print(f"{vc.name} に接続しました")
-                        except Exception as e:
-                            print(f"接続エラー: {e}")
-        await asyncio.sleep(5)
+        if vc is None:
+            try:
+                await after.channel.connect()
+                print("VCに接続しました")
+            except Exception as e:
+                print(f"接続エラー: {e}")
+
+@client.event
+async def on_message(message):
+    if message.channel.name != TARGET_CHANNEL_NAME:
+        return
+
+    if message.guild is None:
+        return
+
+    vc = discord.utils.get(client.voice_clients, guild=message.guild)
+
+    if vc is None:
+        return
+
+    text = message.content
+    if text == "":
+        return
+
+    # 🌏 言語判定（ざっくり）
+    lang = "ja"
+    if any('\uac00' <= c <= '\ud7a3' for c in text):
+        lang = "ko"
+
+    try:
+        tts = gTTS(text=text, lang=lang)
+        tts.save("voice.mp3")
+
+        # 再生中なら待つ
+        while vc.is_playing():
+            await asyncio.sleep(0.5)
+
+        vc.play(discord.FFmpegPCMAudio("voice.mp3"))
+
+    except Exception as e:
+        print(f"読み上げエラー: {e}")
 
 client.run(TOKEN)
