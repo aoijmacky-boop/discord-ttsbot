@@ -34,7 +34,7 @@ async def on_voice_state_update(member, before, after):
             except Exception as e:
                 print(f"接続エラー: {e}")
 
-    # 全員抜けたら退出（少し待つ）
+    # 全員抜けたら退出
     if before.channel is not None:
         await asyncio.sleep(5)
 
@@ -69,21 +69,26 @@ async def on_message(message):
 
     print("読み上げ開始:", text)
 
-    # 言語判定
+    # 言語判定（日本語 or 韓国語）
     lang = "ja"
     if any('\uac00' <= c <= '\ud7a3' for c in text):
         lang = "ko"
 
     try:
         tts = gTTS(text=text, lang=lang)
-        tts.save("voice.mp3")
+        tts.save("voice.wav")
 
-        print("ファイル存在:", os.path.exists("voice.mp3"))
+        print("ファイル存在:", os.path.exists("voice.wav"))
 
+        # 再生中なら待機
         while vc.is_playing():
             await asyncio.sleep(0.5)
 
-        audio = discord.FFmpegPCMAudio("voice.mp3", executable=ffmpeg_path)
+        audio = discord.FFmpegPCMAudio(
+            "voice.wav",
+            executable=ffmpeg_path,
+            options="-loglevel quiet"
+        )
 
         def after_playing(error):
             if error:
