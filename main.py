@@ -5,6 +5,10 @@ import discord
 import asyncio
 import os
 from gtts import gTTS
+import imageio_ffmpeg
+
+ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+print("FFmpeg path:", ffmpeg_path)
 
 TOKEN = os.getenv("TOKEN")
 
@@ -69,7 +73,7 @@ async def on_message(message):
         while vc.is_playing():
             await asyncio.sleep(0.5)
 
-        audio = discord.FFmpegPCMAudio("voice.mp3", executable="ffmpeg")
+      audio = discord.FFmpegPCMAudio("voice.mp3", executable=ffmpeg_path)
 
         def after_playing(error):
             if error:
