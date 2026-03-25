@@ -25,7 +25,6 @@ async def on_ready():
 async def on_voice_state_update(member, before, after):
     vc = discord.utils.get(client.voice_clients, guild=member.guild)
 
-    # 誰か入ったら接続
     if after.channel is not None and before.channel is None:
         if vc is None:
             try:
@@ -34,7 +33,6 @@ async def on_voice_state_update(member, before, after):
             except Exception as e:
                 print(f"接続エラー: {e}")
 
-    # 全員抜けたら退出
     if before.channel is not None:
         await asyncio.sleep(5)
 
@@ -42,9 +40,7 @@ async def on_voice_state_update(member, before, after):
         if vc is None:
             return
 
-        channel = vc.channel
-
-        if len([m for m in channel.members if not m.bot]) == 0:
+        if len([m for m in vc.channel.members if not m.bot]) == 0:
             await vc.disconnect()
             print("VCから退出しました")
 
@@ -59,35 +55,34 @@ async def on_message(message):
         return
 
     vc = discord.utils.get(client.voice_clients, guild=message.guild)
-
     if vc is None:
         return
 
-    text = message.content
+    text = message.content.strip()
     if text == "":
         return
 
     print("読み上げ開始:", text)
 
-    # 言語判定（日本語 or 韓国語）
+    # 言語判定
     lang = "ja"
     if any('\uac00' <= c <= '\ud7a3' for c in text):
         lang = "ko"
 
     try:
         tts = gTTS(text=text, lang=lang)
-        tts.save("voice.wav")
+        tts.save("voice.mp3")
 
-        print("ファイル存在:", os.path.exists("voice.wav"))
+        print("ファイル存在:", os.path.exists("voice.mp3"))
 
-        # 再生中なら待機
         while vc.is_playing():
             await asyncio.sleep(0.5)
 
         audio = discord.FFmpegPCMAudio(
-            "voice.wav",
+            "voice.mp3",
             executable=ffmpeg_path,
-            options="-loglevel quiet"
+            before_options="-nostdin",
+            options="-vn"
         )
 
         def after_playing(error):
@@ -100,6 +95,6 @@ async def on_message(message):
         print("再生開始")
 
     except Exception as e:
-        print("読み上げエラー:", e)
+        print("読み上げエラー:", repr(e))
 
 client.run(TOKEN)
