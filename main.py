@@ -65,4 +65,25 @@ async def on_message(message):
     except Exception as e:
         print(f"読み上げエラー: {e}")
 
+@client.event
+async def on_voice_state_update(member, before, after):
+    vc = discord.utils.get(client.voice_clients, guild=member.guild)
+
+    # 誰か入ったら接続
+    if after.channel is not None and before.channel is None:
+        if vc is None:
+            try:
+                await after.channel.connect()
+                print("VCに接続しました")
+            except Exception as e:
+                print(f"接続エラー: {e}")
+
+    # 全員抜けたら退出
+    if before.channel is not None:
+        channel = before.channel
+        if len(channel.members) == 1:  # botだけになる
+            if vc is not None:
+                await vc.disconnect()
+                print("VCから退出しました")
+
 client.run(TOKEN)
